@@ -3,18 +3,20 @@ package ecloud
 import (
 	"errors"
 	"fmt"
+	"log"
+	"strconv"
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/ukfast/sdk-go/pkg/connection"
 	ecloudservice "github.com/ukfast/sdk-go/pkg/service/ecloud"
 )
 
-func dataSourceNetwork() *schema.Resource {
+func dataSourceFirewallPolicy() *schema.Resource {
 	return &schema.Resource{
-		Read: dataSourceNetworkRead,
+		Read: dataSourceFirewallPolicyRead,
 
 		Schema: map[string]*schema.Schema{
-			"network_id": {
+			"firewall_policy_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -22,8 +24,8 @@ func dataSourceNetwork() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"subnet": {
-				Type:     schema.TypeString,
+			"sequence": {
+				Type:     schema.TypeInt,
 				Optional: true,
 			},
 			"name": {
@@ -34,41 +36,42 @@ func dataSourceNetwork() *schema.Resource {
 	}
 }
 
-func dataSourceNetworkRead(d *schema.ResourceData, meta interface{}) error {
+func dataSourceFirewallPolicyRead(d *schema.ResourceData, meta interface{}) error {
 	service := meta.(ecloudservice.ECloudService)
 
 	params := connection.APIRequestParameters{}
 
-	if id, ok := d.GetOk("network_id"); ok {
+	if id, ok := d.GetOk("firewall_policy_id"); ok {
 		params.WithFilter(*connection.NewAPIRequestFiltering("id", connection.EQOperator, []string{id.(string)}))
 	}
 	if routerID, ok := d.GetOk("router_id"); ok {
 		params.WithFilter(*connection.NewAPIRequestFiltering("router_id", connection.EQOperator, []string{routerID.(string)}))
 	}
-	if subnet, ok := d.GetOk("subnet"); ok {
-		params.WithFilter(*connection.NewAPIRequestFiltering("subnet", connection.EQOperator, []string{subnet.(string)}))
+	if sequence, ok := d.GetOk("sequence"); ok {
+		params.WithFilter(*connection.NewAPIRequestFiltering("sequence", connection.EQOperator, []string{strconv.Itoa(sequence.(int))}))
 	}
 	if name, ok := d.GetOk("name"); ok {
 		params.WithFilter(*connection.NewAPIRequestFiltering("name", connection.EQOperator, []string{name.(string)}))
 	}
 
-	networks, err := service.GetNetworks(params)
+	log.Printf("[DEBUG] Retrieving firewall policies with parameters: %+v", params)
+	policies, err := service.GetFirewallPolicies(params)
 	if err != nil {
-		return fmt.Errorf("Error retrieving active networks: %s", err)
+		return fmt.Errorf("Error retrieving active firewall policies: %s", err)
 	}
 
-	if len(networks) < 1 {
-		return errors.New("No networks found with provided arguments")
+	if len(policies) < 1 {
+		return errors.New("No firewall policies found with provided arguments")
 	}
 
-	if len(networks) > 1 {
-		return errors.New("More than 1 network found with provided arguments")
+	if len(policies) > 1 {
+		return errors.New("More than 1 firewall policy found with provided arguments")
 	}
 
-	d.SetId(networks[0].ID)
-	d.Set("router_id", networks[0].RouterID)
-	d.Set("subnet", networks[0].Subnet)
-	d.Set("name", networks[0].Name)
+	d.SetId(policies[0].ID)
+	d.Set("router_id", policies[0].RouterID)
+	d.Set("sequence", policies[0].Sequence)
+	d.Set("name", policies[0].Name)
 
 	return nil
 }

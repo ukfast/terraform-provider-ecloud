@@ -13,7 +13,7 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"api_key": &schema.Schema{
+			"api_key": {
 				Type:      schema.TypeString,
 				Optional:  true,
 				Sensitive: true,
@@ -29,22 +29,22 @@ func Provider() *schema.Provider {
 			},
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"ecloud_datastore":         dataSourceDatastore(),
-			"ecloud_site":              dataSourceSite(),
-			"ecloud_solution":          dataSourceSolution(),
+			"ecloud_firewallpolicy":    dataSourceFirewallPolicy(),
+			"ecloud_firewallrule":      dataSourceFirewallRule(),
+			"ecloud_image":             dataSourceImage(),
+			"ecloud_instance":          dataSourceInstance(),
 			"ecloud_network":           dataSourceNetwork(),
-			"ecloud_pod":               dataSourcePod(),
-			"ecloud_template":          dataSourceTemplate(),
-			"ecloud_solution_template": dataSourceSolutionTemplate(),
-			"ecloud_appliance":         dataSourceAppliance(),
-			"ecloud_pod_appliance":     dataSourcePodAppliance(),
-			"ecloud_active_directory":  dataSourceActiveDirectory(),
+			"ecloud_router":            dataSourceRouter(),
+			"ecloud_router_throughput": dataSourceRouterThroughput(),
+			"ecloud_vpc":               dataSourceVPC(),
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"ecloud_virtualmachine":     resourceVirtualMachine(),
-			"ecloud_virtualmachine_tag": resourceVirtualMachineTag(),
-			"ecloud_solution_tag":       resourceSolutionTag(),
-			"ecloud_solution_template":  resourceSolutionTemplate(),
+			"ecloud_vpc":            resourceVPC(),
+			"ecloud_router":         resourceRouter(),
+			"ecloud_network":        resourceNetwork(),
+			"ecloud_instance":       resourceInstance(),
+			"ecloud_firewallpolicy": resourceFirewallPolicy(),
+			"ecloud_firewallrule":   resourceFirewallRule(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
